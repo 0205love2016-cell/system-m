@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="消防隊財產管理系統 - 專業的消防設備與人員財產追蹤管理平台">
+  <title>消防隊財產管理系統</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+  <!-- ===== 登入畫面 ===== -->
+  <div class="login-overlay" id="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <i data-lucide="flame"></i>
+      </div>
+      <h2 class="login-title">消防財產管理系統</h2>
+      <p class="login-subtitle">請選擇分隊並輸入密碼以登入系統</p>
+      <form id="login-form">
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label for="login-branch" style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;color:var(--text-secondary);">選擇分隊 / 帳號</label>
+          <select id="login-branch" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--bg-primary);color:var(--text-primary);">
+            <option value="雙福分隊">雙福分隊</option>
+            <option value="三和分隊">三和分隊</option>
+            <option value="admin">系統管理員 (admin)</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 24px;">
+          <label for="login-password" style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;color:var(--text-secondary);">登入密碼</label>
+          <input type="password" id="login-password" required placeholder="請輸入密碼" style="width:100%;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;font-size:14px;background:var(--bg-primary);color:var(--text-primary);box-sizing:border-box;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;font-size:15px;font-weight:bold;border-radius:8px;justify-content:center;">登入系統</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-layout" id="app-layout" style="display: none;">
+    <!-- ===== 側邊欄 ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <i data-lucide="flame"></i>
+        </div>
+        <div>
+          <h1 class="sidebar-title" id="sidebar-branch-name">財產管理</h1>
+          <p class="sidebar-subtitle" id="sidebar-role-name">消防隊專用</p>
+        </div>
+      </div>
+
+      <!-- 管理員分隊切換選單 -->
+      <div id="admin-branch-switcher-container" style="padding: 0 16px 12px; display: none;">
+        <select class="filter-select" id="admin-branch-switcher" style="width: 100%; background: var(--bg-secondary); border-color: var(--border-color); color: var(--text-primary); font-size: 13px;">
+          <option value="admin">所有分隊</option>
+          <option value="雙福分隊">雙福分隊</option>
+          <option value="三和分隊">三和分隊</option>
+        </select>
+      </div>
+
+      <nav class="sidebar-nav">
+        <span class="sidebar-section-title">管理功能</span>
+        <a class="sidebar-item nav-item active" data-page="dashboard" id="nav-dashboard">
+          <div class="sidebar-item-icon"><i data-lucide="shield"></i></div>
+          <span>儀表板</span>
+        </a>
+        <a class="sidebar-item nav-item" data-page="assets" id="nav-assets">
+          <div class="sidebar-item-icon"><i data-lucide="package"></i></div>
+          <span>財產管理</span>
+        </a>
+        <a class="sidebar-item nav-item" data-page="personnel" id="nav-personnel">
+          <div class="sidebar-item-icon"><i data-lucide="users"></i></div>
+          <span>人員管理</span>
+        </a>
+
+        <span class="sidebar-section-title">系統</span>
+        <a class="sidebar-item nav-item" data-page="settings" id="nav-settings">
+          <div class="sidebar-item-icon"><i data-lucide="settings"></i></div>
+          <span>資料維護</span>
+        </a>
+        
+        <a class="sidebar-item" id="btn-logout" style="margin-top: auto; color: #ef4444; cursor: pointer;">
+          <div class="sidebar-item-icon" style="color: #ef4444;"><i data-lucide="log-out"></i></div>
+          <span>登出系統</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="theme-toggle-container">
+          <button class="theme-toggle-btn" id="btn-theme-toggle" type="button" title="切換深淺色模式">
+            <i data-lucide="sun" class="icon-sun"></i>
+            <i data-lucide="moon" class="icon-moon"></i>
+            <span class="theme-text">淺色模式</span>
+          </button>
+        </div>
+        <div class="version-text">版本 v1.0.0</div>
+      </div>
+    </aside>
+
+    <!-- 側邊欄背景遮罩（手機版） -->
+    <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+    <!-- ===== 主要內容區 ===== -->
+    <main class="app-main main-content" id="main-content">
+
+      <!-- 手機版頂部列 -->
+      <header class="mobile-header" id="mobile-header">
+        <button class="sidebar-toggle" id="sidebar-toggle" type="button" aria-label="開啟選單">
+          <i data-lucide="menu"></i>
+        </button>
+        <h2>消防隊財產管理系統</h2>
+      </header>
+
+    <!-- ============================== -->
+    <!-- 頁面：儀表板                     -->
+    <!-- ============================== -->
+    <div class="page-container" id="page-dashboard">
+
+      <div class="page-header">
+        <h2>儀表板</h2>
+      </div>
+
+      <!-- 統計卡片 -->
+      <div class="stat-cards">
+        <!-- 財產總數 -->
+        <div class="stat-card stat-card--primary">
+          <div class="stat-card-header">
+            <span class="stat-card-label">財產總數</span>
+            <div class="stat-card-icon">
+              <i data-lucide="package"></i>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-total-assets">0</div>
+        </div>
+
+        <!-- 在職人員 -->
+        <div class="stat-card stat-card--success">
+          <div class="stat-card-header">
+            <span class="stat-card-label">在職人員</span>
+            <div class="stat-card-icon">
+              <i data-lucide="users"></i>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-active-personnel">0</div>
+        </div>
+
+        <!-- 待修品項 -->
+        <div class="stat-card stat-card--warning">
+          <div class="stat-card-header">
+            <span class="stat-card-label">待修品項</span>
+            <div class="stat-card-icon">
+              <i data-lucide="alert-triangle"></i>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-repair-count">0</div>
+        </div>
+
+        <!-- 即將到期 -->
+        <div class="stat-card stat-card--danger">
+          <div class="stat-card-header">
+            <span class="stat-card-label">即將到期</span>
+            <div class="stat-card-icon">
+              <i data-lucide="clock"></i>
+            </div>
+          </div>
+          <div class="stat-card-value" id="stat-expiring-count">0</div>
+        </div>
+      </div>
+
+      <!-- 兩欄佈局 -->
+      <div class="dashboard-grid" style="grid-template-columns: 1fr; gap: 24px;">
+        <!-- 即將到期財產 -->
+        <div class="card">
+          <div class="card-header">
+            <h3>即將到期財產</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-container">
+              <table class="data-table" id="expiring-table">
+                <thead>
+                  <tr>
+                    <th>財產編號</th>
+                    <th>品名</th>
+                    <th>到期日</th>
+                    <th>剩餘天數</th>
+                  </tr>
+                </thead>
+                <tbody id="expiring-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="expiring-empty">
+              <i data-lucide="check-circle"></i>
+              <p>目前沒有即將到期的財產</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 已到期財產 -->
+        <div class="card">
+          <div class="card-header">
+            <h3>已到期財產</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-container">
+              <table class="data-table" id="expired-table">
+                <thead>
+                  <tr>
+                    <th>財產編號</th>
+                    <th>品名</th>
+                    <th>到期日</th>
+                    <th>逾期天數</th>
+                  </tr>
+                </thead>
+                <tbody id="expired-tbody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="expired-empty">
+              <i data-lucide="check-circle"></i>
+              <p>目前沒有已到期的財產</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- 頁面：財產管理                   -->
+    <!-- ============================== -->
+    <div class="page-container hidden" id="page-assets">
+
+      <div class="page-header">
+        <h2>財產管理</h2>
+      </div>
+
+      <!-- 工具列 -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="search-box">
+            <i data-lucide="search"></i>
+            <input type="text" id="asset-search" placeholder="搜尋財產編號或品名...">
+          </div>
+          <select class="filter-select" id="filter-category">
+            <option value="">所有類別</option>
+          </select>
+          <select class="filter-select" id="filter-condition">
+            <option value="">所有狀態</option>
+          </select>
+          <select class="filter-select" id="filter-assigned">
+            <option value="">所有配發</option>
+            <option value="unassigned">未配發</option>
+            <option value="assigned">已配發</option>
+          </select>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-secondary" id="btn-import-excel" type="button">
+            <i data-lucide="file-spreadsheet"></i>
+            <span>匯入 Excel</span>
+          </button>
+          <button class="btn btn-primary" id="btn-add-asset" type="button">
+            <i data-lucide="plus"></i>
+            <span>新增財產</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-assets-pdf" type="button">
+            <i data-lucide="file-text"></i>
+            <span>匯出 PDF 報表</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 財產表格 -->
+      <div class="table-container">
+        <table class="data-table" id="assets-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">#</th>
+              <th>財產編號</th>
+              <th>品名</th>
+              <th>類別</th>
+              <th>配發人員</th>
+              <th>購置日期</th>
+              <th>到期日期</th>
+              <th>存放位置</th>
+              <th>照片</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="assets-tbody"></tbody>
+        </table>
+      </div>
+
+      <!-- 無資料狀態 -->
+      <div class="empty-state hidden" id="assets-empty">
+        <i data-lucide="inbox"></i>
+        <h3>尚無財產資料</h3>
+        <p>點擊「新增財產」或「匯入 Excel」來新增資料</p>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- 頁面：人員管理                   -->
+    <!-- ============================== -->
+    <div class="page-container hidden" id="page-personnel">
+
+      <div class="page-header">
+        <h2>人員管理</h2>
+      </div>
+
+      <!-- 工具列 -->
+      <div class="toolbar">
+        <div class="toolbar-left" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <div class="search-box" style="flex: 1; min-width: 200px;">
+            <i data-lucide="search"></i>
+            <input type="text" id="personnel-search" placeholder="搜尋人員姓名...">
+          </div>
+          <div class="segmented-control" id="personnel-rank-filter">
+            <button class="btn-segment" id="btn-filter-police" type="button">
+              <i data-lucide="shield" style="width: 15px; height: 15px;"></i>
+              <span>警消</span>
+            </button>
+            <button class="btn-segment" id="btn-filter-volunteer" type="button">
+              <i data-lucide="heart-handshake" style="width: 15px; height: 15px;"></i>
+              <span>義消</span>
+            </button>
+          </div>
+        </div>
+        <div class="toolbar-right">
+          <button class="btn btn-primary" id="btn-add-personnel" type="button">
+            <i data-lucide="user-plus"></i>
+            <span>新增人員</span>
+          </button>
+          <button class="btn btn-secondary" id="btn-export-personnel-pdf" type="button">
+            <i data-lucide="file-text"></i>
+            <span>匯出 PDF 報表</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 人員卡片網格 -->
+      <div class="personnel-grid" id="personnel-grid"></div>
+
+      <!-- 無資料狀態 -->
+      <div class="empty-state hidden" id="personnel-empty">
+        <i data-lucide="users"></i>
+        <h3>尚無人員資料</h3>
+        <p>點擊「新增人員」來建立人員資料</p>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- 頁面：資料維護                   -->
+    <!-- ============================== -->
+    <div class="page-container hidden" id="page-settings">
+
+      <div class="page-header">
+        <h2>資料維護</h2>
+      </div>
+
+      <div class="settings-grid">
+
+        <!-- 備份還原 -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i data-lucide="hard-drive"></i> 備份還原</h3>
+          </div>
+          <div class="card-body">
+            <div class="settings-actions">
+              <button class="btn btn-primary" id="btn-export-json" type="button">
+                <i data-lucide="download"></i>
+                <span>匯出 JSON</span>
+              </button>
+
+              <button class="btn btn-secondary" id="btn-import-json" type="button">
+                <i data-lucide="upload"></i>
+                <span>匯入 JSON</span>
+              </button>
+              <input type="file" id="import-json-input" accept=".json" style="display: none;">
+
+              <button class="btn btn-ghost" id="btn-cloud-backup" type="button" disabled title="即將推出">
+                <i data-lucide="cloud-upload"></i>
+                <span>備份到雲端硬碟</span>
+              </button>
+
+              <button class="btn btn-ghost" id="btn-cloud-restore" type="button" disabled title="即將推出">
+                <i data-lucide="cloud-download"></i>
+                <span>從雲端還原</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 密碼設定 -->
+        <div class="card" id="card-password-settings">
+          <div class="card-header">
+            <h3><i data-lucide="key-round"></i> 密碼設定</h3>
+          </div>
+          <div class="card-body">
+            <form id="password-settings-form">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="settings-login-pwd">分隊登陸密碼（可讀寫）</label>
+                  <input type="password" id="settings-login-pwd" placeholder="輸入新密碼">
+                </div>
+                <div class="form-group">
+                  <label for="settings-readonly-pwd">分隊唯讀密碼</label>
+                  <input type="password" id="settings-readonly-pwd" placeholder="輸入新密碼">
+                </div>
+              </div>
+              <div class="form-group" id="settings-admin-pwd-group" style="margin-top: 12px;">
+                <label for="settings-admin-pwd">管理員密碼 (admin)</label>
+                <input type="password" id="settings-admin-pwd" placeholder="輸入新密碼">
+              </div>
+              <button class="btn btn-primary" id="btn-save-passwords" type="button" style="margin-top: 16px;">
+                <i data-lucide="save"></i>
+                <span>儲存密碼設定</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- 分隊管理 -->
+        <div class="card" id="card-branch-settings" style="display: none;">
+          <div class="card-header">
+            <h3><i data-lucide="building-2"></i> 分隊管理</h3>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <input type="text" id="new-branch-input" placeholder="輸入分隊名稱 (例如: 新港分隊)" style="flex:1;padding:10px 12px;border:1px solid var(--border-color);border-radius:8px;background:var(--bg-primary);color:var(--text-primary);">
+              <button class="btn btn-primary" id="btn-add-branch" type="button" style="padding:10px 16px;">
+                <i data-lucide="plus" style="width:16px;height:16px;"></i>
+                <span>新增分隊</span>
+              </button>
+            </div>
+            <div id="branch-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;padding-right:4px;">
+              <!-- 動態渲染分隊列表 -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 類別管理 -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i data-lucide="tag"></i> 類別管理</h3>
+          </div>
+          <div class="card-body">
+            <div id="category-list" class="category-list"></div>
+          </div>
+        </div>
+
+        <!-- 系統資訊 -->
+        <div class="card">
+          <div class="card-header">
+            <h3><i data-lucide="info"></i> 系統資訊</h3>
+          </div>
+          <div class="card-body">
+            <div class="system-info">
+              <div class="info-row">
+                <span class="info-label">系統版本</span>
+                <span class="info-value">v1.0.0</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">資料庫名稱</span>
+                <span class="info-value" id="info-db-name">FireDeptAssets</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">資料庫引擎</span>
+                <span class="info-value" id="info-db-engine">Dexie.js (IndexedDB)</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">財產總筆數</span>
+                <span class="info-value" id="info-asset-count">0</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">人員總筆數</span>
+                <span class="info-value" id="info-personnel-count">0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+  <!-- ============================== -->
+  <!-- Modal：財產新增/編輯              -->
+  <!-- ============================== -->
+  <div class="modal-overlay hidden" id="asset-modal-overlay">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="asset-modal-title">新增財產</h3>
+        <button class="modal-close" id="asset-modal-close" type="button" aria-label="關閉">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="asset-form">
+          <input type="hidden" id="asset-id">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="asset-code">財產編號</label>
+              <input type="text" id="asset-code" placeholder="輸入財產編號">
+            </div>
+            <div class="form-group">
+              <label for="asset-name">品名 <span class="required">*</span></label>
+              <input type="text" id="asset-name" required placeholder="輸入品名">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="asset-category">類別</label>
+              <select id="asset-category">
+                <option value="">請選擇類別</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="asset-condition">狀態</label>
+              <select id="asset-condition">
+                <option value="">-- 請選擇 --</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="asset-assigned">配發人員</label>
+              <select id="asset-assigned">
+                <option value="">未配發</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="asset-location">存放位置</label>
+              <input type="text" id="asset-location" placeholder="輸入存放位置">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="asset-acquired">取得日期 (購置日期)</label>
+              <input type="date" id="asset-acquired">
+            </div>
+            <div class="form-group">
+              <label for="asset-lifespan">使用年限 (年)</label>
+              <input type="number" id="asset-lifespan" min="1" placeholder="例如：5">
+            </div>
+            <div class="form-group">
+              <label for="asset-expiry">到期日期</label>
+              <input type="date" id="asset-expiry">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="asset-spec">規格</label>
+            <textarea id="asset-spec" rows="2" placeholder="輸入規格說明"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="asset-notes">備註</label>
+            <textarea id="asset-notes" rows="2" placeholder="輸入備註"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>照片</label>
+            <div class="photo-upload-zone" id="photo-upload-zone">
+              <i data-lucide="image-plus"></i>
+              <p>點擊或拖放照片</p>
+            </div>
+            <input type="file" id="photo-input" accept="image/*" multiple hidden>
+            <div class="photo-grid" id="photo-grid"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="asset-modal-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="btn-save-asset" type="button">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- Modal：人員新增/編輯              -->
+  <!-- ============================== -->
+  <div class="modal-overlay hidden" id="personnel-modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="personnel-modal-title">新增人員</h3>
+        <button class="modal-close" id="personnel-modal-close" type="button" aria-label="關閉">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="personnel-form">
+          <input type="hidden" id="personnel-id">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="personnel-name">姓名 <span class="required">*</span></label>
+              <input type="text" id="personnel-name" required placeholder="輸入姓名">
+            </div>
+            <div class="form-group">
+              <label for="personnel-rank">對象 <span class="required">*</span></label>
+              <select id="personnel-rank" required>
+                <option value="">-- 請選擇 --</option>
+                <option value="警消">警消</option>
+                <option value="義消">義消</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="personnel-status">狀態</label>
+            <select id="personnel-status">
+              <option value="在職">在職</option>
+              <option value="離職">離職</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="personnel-phone">聯絡電話</label>
+            <input type="tel" id="personnel-phone" placeholder="輸入聯絡電話">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="personnel-modal-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="btn-save-personnel" type="button">儲存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- Modal：人員配發清單                -->
+  <!-- ============================== -->
+  <div class="modal-overlay hidden" id="personnel-assets-overlay">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="personnel-assets-title">配發清單</h3>
+        <button class="modal-close" id="personnel-assets-close" type="button" aria-label="關閉">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="personnel-assets-summary" id="personnel-assets-summary"></div>
+        <div class="table-container">
+          <table class="data-table" id="personnel-assets-table">
+            <thead>
+              <tr>
+                <th>財產編號</th>
+                <th>品名</th>
+                <th>類別</th>
+                <th>狀態</th>
+                <th>照片</th>
+              </tr>
+            </thead>
+            <tbody id="personnel-assets-tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state hidden" id="personnel-assets-empty">
+          <i data-lucide="package-open"></i>
+          <p>此人員尚無配發財產</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="personnel-assets-modal-close" type="button">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- Modal：Excel 匯入                -->
+  <!-- ============================== -->
+  <div class="modal-overlay hidden" id="import-modal-overlay">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3>批次匯入 Excel</h3>
+        <button class="modal-close" id="import-modal-close" type="button" aria-label="關閉">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Step 1: 上傳 -->
+        <div id="import-step-upload">
+          <div class="photo-upload-zone" id="excel-drop-zone">
+            <i data-lucide="file-spreadsheet"></i>
+            <p>拖放或點擊上傳 Excel 檔案</p>
+            <span class="upload-hint">支援 .xlsx、.xls 格式</span>
+          </div>
+          <input type="file" id="excel-input" accept=".xlsx,.xls" hidden>
+          <div class="upload-actions">
+            <button class="btn btn-ghost" id="btn-download-template" type="button">
+              <i data-lucide="download"></i>
+              <span>下載匯入範本</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: 預覽 -->
+        <div id="import-step-preview" class="hidden">
+          <div class="import-stats" id="import-stats">
+            <div class="import-stat">
+              <span class="import-stat-value" id="import-stat-total">0</span>
+              <span class="import-stat-label">總筆數</span>
+            </div>
+            <div class="import-stat valid">
+              <span class="import-stat-value" id="import-stat-valid">0</span>
+              <span class="import-stat-label">有效</span>
+            </div>
+            <div class="import-stat error">
+              <span class="import-stat-value" id="import-stat-error">0</span>
+              <span class="import-stat-label">錯誤</span>
+            </div>
+          </div>
+          <div class="import-preview">
+            <div class="table-container">
+              <table class="data-table" id="import-preview-table">
+                <thead>
+                  <tr>
+                    <th>列</th>
+                    <th>財產編號</th>
+                    <th>品名</th>
+                    <th>類別</th>
+                    <th>狀態</th>
+                    <th>結果</th>
+                  </tr>
+                </thead>
+                <tbody id="import-preview-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <p class="import-note">
+            <i data-lucide="info"></i>
+            紅色標示的列將不會匯入
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="import-modal-cancel" type="button">取消</button>
+        <button class="btn btn-primary" id="btn-confirm-import" type="button" disabled>匯入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================== -->
+  <!-- Lightbox                        -->
+  <!-- ============================== -->
+  <div class="lightbox-overlay hidden" id="lightbox-overlay">
+    <img id="lightbox-img" src="" alt="照片預覽">
+  </div>
+
+  <!-- ===== 外部依賴 ===== -->
+  <script src="https://unpkg.com/dexie@4/dist/dexie.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Firebase SDK Compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <!-- ===== 應用程式模組 ===== -->
+  <script src="./js/config.js"></script>
+  <script src="./js/db.js"></script>
+  <script src="./js/utils.js"></script>
+  <script src="./js/app.js"></script>
+
+  <!-- ===== 初始化 ===== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (window.App && window.App.init) {
+        window.App.init();
+      }
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+
+</body>
+</html>
